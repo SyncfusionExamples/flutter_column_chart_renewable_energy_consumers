@@ -1,0 +1,25 @@
+name: flutter_stacked_column_chart_renewable_energy_consumers
+description: "Syncfusion Flutter Stacked Column 3D Chart."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.5.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  syncfusion_flutter_charts: ^28.1.33
+
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
