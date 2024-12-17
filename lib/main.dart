@@ -18,6 +18,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<EnergyData> _energyConsumedData;
   late Map<String, Color> _cylinderColors;
   late Map<String, Color> _topOvalColors;
+  late ChartSeriesController _controller;
 
   @override
   void initState() {
@@ -48,28 +49,68 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: SfCartesianChart(
-      backgroundColor: const Color.fromARGB(255, 202, 196, 196),
-      primaryXAxis: const CategoryAxis(),
-      series: <CartesianSeries<EnergyData, String>>[
-        ColumnSeries<EnergyData, String>(
-          dataSource: _energyConsumedData,
-          xValueMapper: (EnergyData data, index) => data.country,
-          yValueMapper: (EnergyData data, index) =>
-              data.energyConsumedPercent,
-          pointColorMapper: (EnergyData data, index) =>
-              _cylinderColors[data.country],
-          isTrackVisible: true,
-          trackColor: const Color.fromARGB(255, 191, 188, 188),
-          animationDuration: 0,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SfCartesianChart(
+        title: const ChartTitle(
+            alignment: ChartAlignment.center,
+            text:
+                'Percentage of Total Energy Consumption from Renewable Sources in a Country'),
+        tooltipBehavior: TooltipBehavior(enable: true),
+        onTooltipRender: (TooltipArgs tooltipArgs) {
+          List<String> tooltipText = tooltipArgs.text!.split(' : ');
+          tooltipArgs.header = tooltipText[0];
+          tooltipArgs.text = '${tooltipText[1]}%';
+        },
+        onDataLabelRender: (DataLabelRenderArgs dataLabelArgs) {
+          dataLabelArgs.text = '${dataLabelArgs.text}%';
+        },
+        plotAreaBorderWidth: 0,
+        primaryXAxis: CategoryAxis(
+          majorGridLines: const MajorGridLines(width: 0),
+          majorTickLines: const MajorTickLines(width: 0),
+          axisLine: const AxisLine(width: 0),
+          axisLabelFormatter: (axisLabelRenderArgs) {
+            final String countryName = axisLabelRenderArgs.text;
+            TextStyle textStyle = Theme.of(context)
+                .textTheme
+                .titleSmall!
+                .copyWith(color: _cylinderColors[countryName]);
+            return ChartAxisLabel(countryName, textStyle);
+          },
+          labelPosition: ChartDataLabelPosition.inside,
         ),
-      ],
-    ),
-  );
-}
+        primaryYAxis: const NumericAxis(
+          isVisible: false,
+          plotOffsetStart: 50,
+          plotOffsetEnd: 50,
+        ),
+        series: <CartesianSeries<EnergyData, String>>[
+          ColumnSeries(
+            dataSource: _energyConsumedData,
+            xValueMapper: (EnergyData data, index) => data.country,
+            yValueMapper: (EnergyData data, index) =>
+                data.energyConsumedPercent,
+            onCreateRenderer: (ChartSeries series) {
+              return _CustomColumn3DSeriesRenderer(_topOvalColors);
+            },
+            onRendererCreated: (ChartSeriesController controller) {
+              _controller = controller;
+            },
+            isTrackVisible: true,
+            trackColor: const Color.fromARGB(255, 191, 188, 188),
+            pointColorMapper: (EnergyData data, index) =>
+                _cylinderColors[data.country],
+            dataLabelSettings: const DataLabelSettings(
+                isVisible: true,
+                labelAlignment: ChartDataLabelAlignment.middle),
+            animationDuration: 2000,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _CustomColumn3DSeriesRenderer
@@ -95,13 +136,15 @@ class _CustomColumn3DSegment extends ColumnSegment<EnergyData, String> {
     final double trackerTop = series.pointToPixelY(0, 100);
     final Rect trackerTopOval = ovalRect(trackerTop);
     final Rect bottomOval = ovalRect(segmentRect!.bottom);
-    final Rect topOval = ovalRect(segmentRect!.top);
+    final Rect animatedTopOval = ovalRect(segmentRect!.bottom -
+        ((segmentRect!.bottom - segmentRect!.top) * animationFactor));
 
     super.onPaint(canvas);
     canvas.drawOval(trackerTopOval,
         Paint()..color = const Color.fromARGB(255, 204, 201, 201));
     canvas.drawOval(bottomOval, Paint()..color = fillPaint.color);
-    canvas.drawOval(topOval, Paint()..color = topOvalColors[countryName]!);
+    canvas.drawOval(
+        animatedTopOval, Paint()..color = topOvalColors[countryName]!);
   }
 
   Rect ovalRect(double ovalCenterY) {
