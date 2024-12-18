@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 void main() {
-  runApp(const MaterialApp(
-    home: MyHomePage(),
-    debugShowCheckedModeBanner: false,
-  ));
+  runApp(
+    const MaterialApp(
+      home: MyHomePage(),
+      debugShowCheckedModeBanner: false,
+    ),
+  );
 }
 
 class MyHomePage extends StatefulWidget {
@@ -18,7 +20,6 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<EnergyData> _energyConsumedData;
   late Map<String, Color> _cylinderColors;
   late Map<String, Color> _topOvalColors;
-  late ChartSeriesController _controller;
 
   @override
   void initState() {
@@ -53,10 +54,12 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SfCartesianChart(
+        plotAreaBorderWidth: 0,
         title: const ChartTitle(
-            alignment: ChartAlignment.center,
-            text:
-                'Percentage of Total Energy Consumption from Renewable Sources in a Country'),
+          alignment: ChartAlignment.center,
+          text:
+              'Percentage of Total Energy Consumption from Renewable Sources in a Country',
+        ),
         tooltipBehavior: TooltipBehavior(enable: true),
         onTooltipRender: (TooltipArgs tooltipArgs) {
           List<String> tooltipText = tooltipArgs.text!.split(' : ');
@@ -66,7 +69,6 @@ class _MyHomePageState extends State<MyHomePage> {
         onDataLabelRender: (DataLabelRenderArgs dataLabelArgs) {
           dataLabelArgs.text = '${dataLabelArgs.text}%';
         },
-        plotAreaBorderWidth: 0,
         primaryXAxis: CategoryAxis(
           majorGridLines: const MajorGridLines(width: 0),
           majorTickLines: const MajorTickLines(width: 0),
@@ -83,8 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         primaryYAxis: const NumericAxis(
           isVisible: false,
-          plotOffsetStart: 50,
-          plotOffsetEnd: 50,
+          plotOffset: 50,
         ),
         series: <CartesianSeries<EnergyData, String>>[
           ColumnSeries(
@@ -92,20 +93,17 @@ class _MyHomePageState extends State<MyHomePage> {
             xValueMapper: (EnergyData data, index) => data.country,
             yValueMapper: (EnergyData data, index) =>
                 data.energyConsumedPercent,
-            onCreateRenderer: (ChartSeries series) {
-              return _CustomColumn3DSeriesRenderer(_topOvalColors);
-            },
-            onRendererCreated: (ChartSeriesController controller) {
-              _controller = controller;
-            },
-            isTrackVisible: true,
-            trackColor: const Color.fromARGB(255, 191, 188, 188),
             pointColorMapper: (EnergyData data, index) =>
                 _cylinderColors[data.country],
+            animationDuration: 2000,
+            isTrackVisible: true,
+            trackColor: const Color.fromARGB(255, 191, 188, 188),
             dataLabelSettings: const DataLabelSettings(
                 isVisible: true,
                 labelAlignment: ChartDataLabelAlignment.middle),
-            animationDuration: 2000,
+            onCreateRenderer: (ChartSeries series) {
+              return _CustomColumn3DSeriesRenderer(_topOvalColors);
+            },
           ),
         ],
       ),
@@ -134,9 +132,9 @@ class _CustomColumn3DSegment extends ColumnSegment<EnergyData, String> {
   void onPaint(Canvas canvas) {
     final String countryName = series.xRawValues[currentSegmentIndex]!;
     final double trackerTop = series.pointToPixelY(0, 100);
-    final Rect trackerTopOval = ovalRect(trackerTop);
-    final Rect bottomOval = ovalRect(segmentRect!.bottom);
-    final Rect animatedTopOval = ovalRect(segmentRect!.bottom -
+    final Rect trackerTopOval = _ovalRect(trackerTop);
+    final Rect bottomOval = _ovalRect(segmentRect!.bottom);
+    final Rect animatedTopOval = _ovalRect(segmentRect!.bottom -
         ((segmentRect!.bottom - segmentRect!.top) * animationFactor));
 
     super.onPaint(canvas);
@@ -147,7 +145,7 @@ class _CustomColumn3DSegment extends ColumnSegment<EnergyData, String> {
         animatedTopOval, Paint()..color = topOvalColors[countryName]!);
   }
 
-  Rect ovalRect(double ovalCenterY) {
+  Rect _ovalRect(double ovalCenterY) {
     const double ovalRadius = 15;
     return Rect.fromLTRB(segmentRect!.left, ovalCenterY - ovalRadius,
         segmentRect!.right, ovalCenterY + ovalRadius);
