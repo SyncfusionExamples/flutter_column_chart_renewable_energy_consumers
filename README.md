@@ -2,7 +2,7 @@
 
 This repository contains a sample to visualizing the top 6 energy consuming countries with custom 3D series using [Syncfusion Flutter Chart](https://help.syncfusion.com/flutter/cartesian-charts/getting-started) widget.
 
-Please refer the Blog through this [link]().
+Please refer the Blog through this [link](https://www.syncfusion.com/blogs/post/flutter-3d-column-chart-renewable-energy).
 
 ## Syncfusion widgets:
 
